@@ -4,19 +4,26 @@ import (
 	"fmt"
 	"log"
 	"os"
-
+	"time"
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
 )
 
 //Repository ...
 type Repository struct{}
-
-	// SERVER the DB server
-  var SERVER = os.Getenv("MONGO_HOST") + os.Getenv("MONGO_PORT")
+var SERVER = os.Getenv("MONGO_HOST") + os.Getenv("MONGO_PORT")
+var info = &mgo.DialInfo{
+        Addrs:    []string{SERVER},
+        Timeout:  60 * time.Second,
+        Database: os.Getenv("MONGO_DATBASE"),
+        Username: os.Getenv("MONGO_USER"),
+        Password: os.Getenv("MONGO_PASSWORD"),
+    }
+// SERVER the DB server
+//var SERVER = os.Getenv("MONGO_HOST") + os.Getenv("MONGO_PORT")
 
 // DBNAME the name of the DB instance
- var DBNAME = os.Getenv("MONGO_DATBASE")
+var DBNAME = os.Getenv("MONGO_DATBASE")
 
 // DOCNAME the name of the document
 var DOCNAME = "albums"
@@ -24,9 +31,9 @@ var DOCNAME = "albums"
 
 // GetAlbums returns the list of Albums
 func (r Repository) GetAlbums() Albums {
-	session, err := mgo.Dial(SERVER)
+	session, err := mgo.DialWithInfo(info)
 	if err != nil {
-		fmt.Println("Failed to establish connection to Mongo server:", err)
+		fmt.Println("Failed to establish connection to Mongo info:", err)
 	}
 	defer session.Close()
 	c := session.DB(DBNAME).C(DOCNAME)
@@ -39,9 +46,9 @@ func (r Repository) GetAlbums() Albums {
 
 //get Album
 func (r Repository) GetAlbum(id string) Album {
-	session, err := mgo.Dial(SERVER)
+	session, err := mgo.DialWithInfo(info)
 	if err != nil {
-		fmt.Println("Failed to establish connection to Mongo server:", err)
+		fmt.Println("Failed to establish connection to Mongo info:", err)
 	}
 	defer session.Close()
 	//Verify id is ObjectId, otherwise bail
@@ -60,7 +67,7 @@ func (r Repository) GetAlbum(id string) Album {
 
 // AddAlbum inserts an Album in the DB
 func (r Repository) AddAlbum(album Album) bool {
-	session, err := mgo.Dial(SERVER)
+	session, err := mgo.DialWithInfo(info)
 	defer session.Close()
 	album.ID = bson.NewObjectId()
 	session.DB(DBNAME).C(DOCNAME).Insert(album)
@@ -73,7 +80,7 @@ func (r Repository) AddAlbum(album Album) bool {
 
 // UpdateAlbum updates an Album in the DB (not used for now)
 func (r Repository) UpdateAlbum(album Album) bool {
-	session, err := mgo.Dial(SERVER)
+	session, err := mgo.DialWithInfo(info)
 	defer session.Close()
 	session.DB(DBNAME).C(DOCNAME).UpdateId(album.ID, album)
 	if err != nil {
@@ -85,7 +92,7 @@ func (r Repository) UpdateAlbum(album Album) bool {
 
 // DeleteAlbum deletes an Album (not used for now)
 func (r Repository) DeleteAlbum(id string) string {
-	session, err := mgo.Dial(SERVER)
+	session, err := mgo.DialWithInfo(info)
 	defer session.Close()
 	// Verify id is ObjectId, otherwise bail
 	if !bson.IsObjectIdHex(id) {
