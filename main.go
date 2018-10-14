@@ -8,6 +8,7 @@ import (
 	"musicstore/modules/album"
 	"github.com/joho/godotenv"
 	"os"
+	
 )
 
 func main(){
@@ -20,7 +21,7 @@ func main(){
 	if port == "" {
 		log.Fatal("$PORT must be set")
 	}
-
+	
 	//router call 
 	router := album.NewRouter()
 	allowedOrigins := handlers.AllowedOrigins([]string{"*"})

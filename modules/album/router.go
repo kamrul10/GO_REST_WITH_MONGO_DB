@@ -2,11 +2,13 @@
 package album
 
 import (
+	"log"
 	"net/http"
 	"musicstore/libs/logger"
 	"github.com/gorilla/mux"
+	"gopkg.in/matryer/respond.v1"
 )
-
+const version = "1.0"
 var controller = &Controller{Repository: Repository{}}
 
 type Route struct {
@@ -58,7 +60,27 @@ var routes = Routes{
 	},
 }
 func NewRouter() *mux.Router {
-
+	//response for different status
+	opts := &respond.Options{
+		Before: func(w http.ResponseWriter, r *http.Request, status int, data interface{}) (int, interface{}) {
+			w.Header().Set("X-API-Version", version)
+			dataenvelope := map[string]interface{}{"code": status}
+			if err, ok := data.(error); ok {
+				dataenvelope["success"] = false
+				dataenvelope["error"] = err.Error()
+				
+			} else {
+				dataenvelope["success"] = true
+				dataenvelope["data"] = data
+				
+			}
+			return status, dataenvelope
+ 
+		},
+		After: func(w http.ResponseWriter, r *http.Request, status int, data interface{}) {
+			log.Println("<-", status, data)
+		},
+	}
 	router := mux.NewRouter()
 	for _,route := range routes {
 		var handler http.Handler
@@ -68,7 +90,7 @@ func NewRouter() *mux.Router {
 			Methods(route.Method).
 			Path(route.Pattern).
 			Name(route.Name).
-			Handler(handler)
+			Handler(opts.Handler(handler))
 	}
 	return router
 }
