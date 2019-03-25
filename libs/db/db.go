@@ -24,6 +24,8 @@ func Session() *mgo.Session {
 	mongoSession, err := mgo.DialWithInfo(info)
 	if err != nil {
 		log.Fatalf("CreateSession: %s\n", err)
+	} else {
+		log.Println("connected to mongodb")
 	}
 	return mongoSession;
 }

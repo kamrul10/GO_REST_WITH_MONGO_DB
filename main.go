@@ -19,6 +19,8 @@ func main() {
 
 	if port == "" {
 		log.Fatal("$PORT must be set")
+	} else {
+		log.Println("connected to port===>",port)
 	}
 	//router call
 	router := routes.NewRouter()

@@ -2,12 +2,12 @@
 package album
 
 import (
-	"log"
 	"net/http"
 	"musicstore/libs/logger"
 	"github.com/gorilla/mux"
 	"gopkg.in/matryer/respond.v1"
 	"musicstore/types"
+	"musicstore/middlewares"
 )
 const version = "1.0"
 var controller = &Controller{Repository: Repository{}}
@@ -59,7 +59,7 @@ func AlbumRouter(router *mux.Router){
 	opts := &respond.Options{
 		Before: func(w http.ResponseWriter, r *http.Request, status int, data interface{}) (int, interface{}) {
 			w.Header().Set("X-API-Version", version)
-			dataenvelope := map[string]interface{}{"code": status}
+			dataenvelope := map[string]interface{}{}
 			if err, ok := data.(error); ok {
 				dataenvelope["success"] = false
 				dataenvelope["error"] = err.Error()
@@ -73,7 +73,7 @@ func AlbumRouter(router *mux.Router){
  
 		},
 		After: func(w http.ResponseWriter, r *http.Request, status int, data interface{}) {
-			log.Println("<-", status, data)
+			// log.Println("<-", status, data)
 		},
 	}
 
@@ -85,7 +85,7 @@ func AlbumRouter(router *mux.Router){
 			Methods(route.Method).
 			Path(route.Pattern).
 			Name(route.Name).
-			Handler(opts.Handler(handler))
+			Handler(middlewares.JwtMiddleware(opts.Handler(handler)))
 	}
 
 

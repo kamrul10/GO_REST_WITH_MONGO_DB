@@ -9,6 +9,9 @@ import (
 	"strings"
 	"gopkg.in/matryer/respond.v1"
 	"github.com/gorilla/mux"
+	"github.com/dgrijalva/jwt-go"
+	// "github.com/gorilla/context"
+	
 )
 
 //Controller ...
@@ -23,9 +26,13 @@ func (c *Controller) Index(w http.ResponseWriter, r *http.Request) {
 
 //GET albums
 func (c *Controller) GetAlbums(w http.ResponseWriter, r *http.Request) {
-	albums := c.Repository.GetAlbums() // list of all albums
-	log.Println(albums)
-	respond.With(w, r, http.StatusOK, albums)
+		authUser := r.Context().Value("authUser")
+		user := authUser.(jwt.MapClaims)["user"]
+		business := authUser.(jwt.MapClaims)["business"]
+		log.Println("user_name===>",user.(map[string]interface{})["DisplayName"])
+		log.Println("business_name===>",business.(map[string]interface{})["business_name"])
+		albums := c.Repository.GetAlbums() // list of all albums
+		respond.With(w, r, http.StatusOK, albums)
 }
 
 //Get Album
@@ -36,6 +43,8 @@ func (c *Controller) GetAlbum(w http.ResponseWriter, r *http.Request) {
 	log.Println(album)
 	respond.With(w, r, http.StatusOK, album)
 }
+
+
 // AddAlbum POST /
 func (c *Controller) AddAlbum(w http.ResponseWriter, r *http.Request) {
 	var album Album
@@ -60,6 +69,7 @@ func (c *Controller) AddAlbum(w http.ResponseWriter, r *http.Request) {
 	}
 	respond.With(w, r, http.StatusCreated, album)
 }
+
 
 // UpdateAlbum PUT /
 func (c *Controller) UpdateAlbum(w http.ResponseWriter, r *http.Request) {
